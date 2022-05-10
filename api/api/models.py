@@ -6,15 +6,6 @@ from djongo import models
 
 # Create your models here.
 
-class Module(models.Model):
-    module_num  = models.CharField(max_length=100, unique=True, primary_key=True)
-    module_type = models.CharField(max_length=100)
-    asset       = models.CharField(max_length=100)
-    sensor_type = models.CharField(max_length=100)
-
-    def __str__(self):
-        return f'{self.module_num}'
-
 class Measure(models.Model):
     name  = models.CharField(max_length=100)
     value = models.FloatField()
@@ -23,11 +14,16 @@ class Measure(models.Model):
 
 
 class RawData(models.Model):
-    #module       = models.ForeignKey('Module', on_delete=models.CASCADE)
+    #   Module Related
+    module_num  = models.CharField(max_length=100)
+    module_type = models.CharField(max_length=100)
+    asset       = models.CharField(max_length=100)
+    sensor_type = models.CharField(max_length=100)
+    #   Data
     temperature = models.FloatField()
     voltage     = models.FloatField()
     description = models.CharField(max_length=100, blank=True)
-    measures    = models.ArrayField(model_container=Measure, blank=True)
+    measures    = models.ArrayField(model_container=Measure)
     timestamp   = models.DateTimeField(default=timezone.now)
 
 
@@ -49,12 +45,18 @@ class DataBatch(models.Model):
     #frequency_features  = models.JSONField(editable=False)
     #time_freq_params    = models.JSONField()
     #time_freq_features  = models.JSONField(editable=False)
-    raw_data            = models.ArrayReferenceField(to=RawData)
+    raw_data_begin      = models.ForeignKey(to=RawData, on_delete=models.CASCADE, related_name='+')
+    raw_data_end        = models.ForeignKey(to=RawData, on_delete=models.CASCADE, related_name='+') 
 
     def save(self, *args, **kwargs):
         #setting fields with editable=False
-        times = [measure['timestamp'] for measure in self.rawdata]
-        values = [measure['value'] for measure in self.rawdata]
+        raw_datas = RawData.objects.filter(id__range=(self.raw_data_begin.id, self.raw_data_end.id))
+
+        times  = [rd.timestamp for rd in raw_datas]
+        values = []
+        for raw_data in raw_datas:                 #<<<<< só funciona se raw_data.measures.name forem todos iguais
+            for measure in raw_data.measures:
+                values.append(measure['value'])
 
         self.starting_timestamp = min(times)
         self.ending_timestamp   = max(times)

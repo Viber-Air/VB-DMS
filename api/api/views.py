@@ -3,20 +3,19 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
-from .models import Module, RawData, DataBatch
-from .serializers import ModuleSerializer, RawDataSerializer
+from .models import RawData, DataBatch
+from .serializers import RawDataSerializer, DataBatchSerializer
 from bson import ObjectId
 import re
 
 MODELS = {
-        'module'    : Module,
         'rawdata'   : RawData,
-        'DataBatch' : DataBatch
+        'databatch' : DataBatch
         }
 
 SERIALIZERS = {
-        'module' : ModuleSerializer,
         'rawdata': RawDataSerializer,
+        'databatch': DataBatchSerializer
         }
 
 

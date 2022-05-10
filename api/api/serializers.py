@@ -1,15 +1,15 @@
 from rest_framework import serializers
-from .models import Module, RawData
-
-class ModuleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Module
-        fields = '__all__'
-
+from .models import RawData, DataBatch
 
 class RawDataSerializer(serializers.ModelSerializer):
     measures = serializers.JSONField()
     class Meta:
         model = RawData
         fields = '__all__'
-        depth = 1
+
+
+class DataBatchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DataBatch
+        fields = '__all__'
+        depth = 2
