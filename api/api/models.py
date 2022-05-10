@@ -6,30 +6,26 @@ from djongo import models
 
 # Create your models here.
 
-class Measure(models.Model):
-    name  = models.CharField(max_length=100)
-    value = models.FloatField()
-    class Meta:
-        abstract = True
-
-
-class RawData(models.Model):
-    #   Module Related
-    module_num  = models.CharField(max_length=100)
+class Module(models.Model):
+    module_num  = models.CharField(max_length=100, primary_key=True)
     module_type = models.CharField(max_length=100)
     asset       = models.CharField(max_length=100)
     sensor_type = models.CharField(max_length=100)
+
+
+class RawData(models.Model):
+    module      = models.ForeignKey(to=Module, on_delete=models.CASCADE)
     #   Data
+    name        = models.CharField(max_length=100)
+    value       = models.FloatField()
     temperature = models.FloatField()
     voltage     = models.FloatField()
     description = models.CharField(max_length=100, blank=True)
-    measures    = models.ArrayField(model_container=Measure)
     timestamp   = models.DateTimeField(default=timezone.now)
 
 
 class DataBatch(models.Model):
-    module_num          = models.CharField(max_length=100)
-    module_type         = models.CharField(max_length=100)
+    module              = models.ForeignKey(to=Module, on_delete=models.CASCADE)
     starting_timestamp  = models.DateTimeField(editable=False)
     ending_timestamp    = models.DateTimeField(editable=False)
     window_size         = models.PositiveIntegerField()
@@ -53,10 +49,7 @@ class DataBatch(models.Model):
         raw_datas = RawData.objects.filter(id__range=(self.raw_data_begin.id, self.raw_data_end.id))
 
         times  = [rd.timestamp for rd in raw_datas]
-        values = []
-        for raw_data in raw_datas:                 #<<<<< só funciona se raw_data.measures.name forem todos iguais
-            for measure in raw_data.measures:
-                values.append(measure['value'])
+        values = [rd.value     for rd in raw_datas]
 
         self.starting_timestamp = min(times)
         self.ending_timestamp   = max(times)
