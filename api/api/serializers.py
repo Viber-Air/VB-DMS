@@ -11,13 +11,14 @@ class RawDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = RawData
         fields = '__all__'
-        depth = 1
+        depth = 2
 
 
 class DataBatchSerializer(serializers.ModelSerializer):
+    module = serializers.PrimaryKeyRelatedField(queryset=Module.objects.all())
     raw_data_begin = serializers.PrimaryKeyRelatedField(queryset=RawData.objects.all())
     raw_data_end = serializers.PrimaryKeyRelatedField(queryset=RawData.objects.all())
     class Meta:
         model = DataBatch
         fields = '__all__'
-        depth = 1
+        depth = 2
