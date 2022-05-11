@@ -95,14 +95,6 @@ RAW_DATA
 ]
 ```
 
-DATABATCH
-```json
-{
-  "module"          : "34.B2.9F.A9",
-  "window_size"     : 2,
-  "raw_data_begin"  : "1",
-  "raw_data_end"    : "4"
-}
 ```
 
 # Dev info
