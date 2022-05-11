@@ -43,8 +43,12 @@ RAW_DATA
 [
   {
     "module"      : "34.B2.9F.A9",
-    "name"        : "VMPPT",
-    "value"       : 3.29,
+    "measures"    :[
+                    {
+                      "name"        : "VMPPT",
+                      "value"       : 3.29
+                    }
+                  ],
     "temperature" : 26,
     "voltage"     : 3.29,
     "timestamp"   : "2018-01-01 00:07:37"
@@ -52,8 +56,12 @@ RAW_DATA
 
   {
     "module"      : "34.B2.9F.A9",
-    "name"        : "VMPPT",
-    "value"       : 3.28,
+    "measures"    :[
+                    {
+                      "name"        : "VMPPT",
+                      "value"       : 3.28
+                    }
+                  ],
     "temperature" : 26,
     "voltage"     : 3.28,
     "timestamp"   : "2018-01-01 00:12:49"
@@ -61,8 +69,12 @@ RAW_DATA
 
   {
     "module"      : "34.B2.9F.A9",
-    "name"        : "VMPPT",
-    "value"       : 3.29,
+    "measures"    :[
+                    {
+                      "name"        : "VMPPT",
+                      "value"       : 3.29
+                    }
+                  ],
     "temperature" : 26,
     "voltage"     : 3.28,
     "timestamp"   : "2018-01-01 00:17:39"
@@ -70,13 +82,16 @@ RAW_DATA
 
   {
     "module"      : "34.B2.9F.A9",
-    "name"        : "VMPPT",
-    "value"       : 3.29,
+    "measures"    :[
+                    {
+                      "name"        : "VMPPT",
+                      "value"       : 3.29
+                    }
+                  ],
     "temperature" : 26,
     "voltage"     : 3.28,
     "timestamp"   : "2018-01-01 00:22:42"
   }
-
 ]
 ```
 

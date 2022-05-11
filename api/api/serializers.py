@@ -8,10 +8,11 @@ class ModuleSerializer(serializers.ModelSerializer):
 
 class RawDataSerializer(serializers.ModelSerializer):
     module = serializers.PrimaryKeyRelatedField(queryset=Module.objects.all())
+    measures = serializers.JSONField()
     class Meta:
         model = RawData
         fields = '__all__'
-        depth = 2
+        depth = 1
 
 
 class DataBatchSerializer(serializers.ModelSerializer):
@@ -21,4 +22,3 @@ class DataBatchSerializer(serializers.ModelSerializer):
     class Meta:
         model = DataBatch
         fields = '__all__'
-        depth = 2

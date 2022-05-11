@@ -13,11 +13,17 @@ class Module(models.Model):
     sensor_type = models.CharField(max_length=100)
 
 
+class Measure(models.Model):
+    name  = models.CharField(max_length=100)
+    value = models.FloatField()
+    class Meta:
+        abstract = True
+
+
 class RawData(models.Model):
     module      = models.ForeignKey(to=Module, on_delete=models.CASCADE)
     #   Data
-    name        = models.CharField(max_length=100)
-    value       = models.FloatField()
+    measures    = models.ArrayField(model_container=Measure)
     temperature = models.FloatField()
     voltage     = models.FloatField()
     description = models.CharField(max_length=100, blank=True)
@@ -28,14 +34,10 @@ class DataBatch(models.Model):
     module              = models.ForeignKey(to=Module, on_delete=models.CASCADE)
     starting_timestamp  = models.DateTimeField(editable=False)
     ending_timestamp    = models.DateTimeField(editable=False)
-    window_size         = models.PositiveIntegerField()
+    window_size         = models.PositiveIntegerField(editable=False)
     #normalized          = models.BooleanField(editable=False)
     #normalization       = models.CharField(max_length=100)
-    batch_mean          = models.FloatField(editable=False)
-    batch_std           = models.FloatField(editable=False)
-    #batch_rms           = models.FloatField(editable=False)
-    #batch_kurtosis      = models.FloatField(editable=False)
-    #batch_skewness      = models.FloatField(editable=False)
+    time_features       = models.JSONField(editable=False)
     #rolling_mean_params = models.JSONField()
     #frequency_params    = models.JSONField()
     #frequency_features  = models.JSONField(editable=False)
@@ -48,11 +50,19 @@ class DataBatch(models.Model):
         #setting fields with editable=False
         raw_datas = RawData.objects.filter(id__range=(self.raw_data_begin.id, self.raw_data_end.id))
 
-        times  = [rd.timestamp for rd in raw_datas]
-        values = [rd.value     for rd in raw_datas]
+        times = [rd.timestamp for rd in raw_datas]
+        measures = {}
+        for raw_data in raw_datas:
+            for measure in raw_data.measures:
+                try:
+                    measures[measure['name']] = measure['value']
+                except KeyError:
+                    pass
+        [rd.measures for rd in raw_datas]
 
         self.starting_timestamp = min(times)
         self.ending_timestamp   = max(times)
+        self.window_size        = len(raw_datas)
         #TODO normalization
         self.batch_mean = fmean(values)
         self.batch_std = stdev(values)
