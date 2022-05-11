@@ -15,6 +15,8 @@ class RawDataSerializer(serializers.ModelSerializer):
 
 
 class DataBatchSerializer(serializers.ModelSerializer):
+    raw_data_begin = serializers.PrimaryKeyRelatedField(queryset=RawData.objects.all())
+    raw_data_end = serializers.PrimaryKeyRelatedField(queryset=RawData.objects.all())
     class Meta:
         model = DataBatch
         fields = '__all__'
