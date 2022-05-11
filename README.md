@@ -95,20 +95,19 @@ RAW_DATA
 ]
 ```
 
-```
 
 # Dev info
 
 ## Folder structure
 ```
 WP-DataServices
-    |_api                 Django project
-    |   |_api             Django app - the actual api code
-    |   |_config          Django main app
-    |   |_run.sh          Entrypoint for the api container
-    |_Dockerfile          To build the api container
-    |_docker-compose.yml  To link the api and mongo containers
-    |_requirements.txt     Requirements for the api container
+    ├─api                 Django project
+    │  ├─ api             Django app - the actual api code
+    │  ├─ config          Django main app
+    │  └─ run.sh          Entrypoint for the api container
+    ├─ Dockerfile          To build the api container
+    ├─ docker-compose.yml  To link the api and mongo containers
+    └─ requirements.txt     Requirements for the api container
 ```
 
 ## Persistent Data
@@ -116,3 +115,15 @@ Docker Volumes mapped to:
 - /var/WP/WP-DataServices_DB
 - /var/WP/WP-DataServices_config
 
+## Parallel Processing
+
+Done inside the api_databatch() function:
+
+```
+                                       process_databatch()
+                      ┌ rawbatch#1 ────────────────────────> databatch#1 ┐
+             split    │                                                  │    
+raw_datas────────────>├ rawbatch#2 ────────────────────────> databatch#2 ├────────────> response
+                      │                                                  │
+                      └ rawbatch#3 ────────────────────────> databatch#3 ┘
+```

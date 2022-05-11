@@ -76,7 +76,7 @@ def api_databatch(request):
     filters,_ = parse_params(request, RawData)
     raw_datas = RawData.objects.filter(**filters)
 
-    #partition rawdatas
+    #split rawdatas
     raw_batches = []
     n_batches = int( len(raw_datas)/window_size )
     for i in range(n_batches):
@@ -87,7 +87,11 @@ def api_databatch(request):
     #process requested features
     with Pool() as p:
         processed_batches = p.map(process_databatch, raw_batches)
+    
     #return response
+    for batch in processed_batches:
+        batch['module_num']  = params['module_num']
+        batch['window_size'] = params['window_size']
     return Response(processed_batches)
 
 def process_databatch(raw_batch):
@@ -101,15 +105,15 @@ def process_databatch(raw_batch):
             except KeyError:
                 measures[measure['name']] = [measure['value']]
 
-    resp['starting_timestamp'] = min(times)
-    resp['ending_timestamp']   = max(times)
-    resp['window_size']        = len(raw_batch)
+    resp['starting_timestamp']  = min(times)
+    resp['ending_timestamp']    = max(times)
+    resp['window_size']         = len(raw_batch)
     #TODO normalization
     
-    #time features
+    #process time features
     time_features = {}
-    time_features['batch_mean'] = {key:fmean(value) for key,value in measures.items()}
-    time_features['batch_std']  = {key:stdev(value) for key,value in measures.items()}
+    time_features['batch_mean'] = [{'name':name, 'value':fmean(value)} for name,value in measures.items()]
+    time_features['batch_std']  = [{'name':name, 'value':stdev(value)} for name,value in measures.items()]
     resp['time_features'] = time_features
     #TODO other batch analysis
     #TODO rolling mean
