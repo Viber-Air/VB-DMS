@@ -1,30 +1,31 @@
+from multiprocessing import Pool
+from statistics import fmean, stdev
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
-from .models import Module, RawData, DataBatch
+from .models import Module, RawData
 from .serializers import ModuleSerializer, RawDataSerializer
 from bson import ObjectId
 import re
 
+
+#====================================================================#
+#                       /api/module & /api/rawdata                   #
+#====================================================================#
+
 MODELS = {
         'module'    : Module,
         'rawdata'   : RawData,
-        'DataBatch' : DataBatch
         }
 
 SERIALIZERS = {
-        'module' : ModuleSerializer,
-        'rawdata': RawDataSerializer,
+        'module'    : ModuleSerializer,
+        'rawdata'   : RawDataSerializer,
         }
 
-
-def index(request):
-    return render(request, 'index.html')
-
-
-@api_view(['GET', 'PUT', 'POST', 'DELETE'])
+@api_view(['GET', 'POST', 'DELETE'])
 @authentication_classes([SessionAuthentication, BasicAuthentication])
 @permission_classes([IsAuthenticated])
 def api(request, collection):
@@ -39,14 +40,6 @@ def api(request, collection):
 
     elif request.method == 'POST':
         resp = Serializer(data=data, many=True)
-        if resp.is_valid():
-            resp.save()
-        else:
-            return Response(status=400)
-
-    elif request.method == 'PUT':
-        query = Model.objects.get(pk = ObjectId(data[0]['_id']))
-        resp = Serializer(query, data=data[0])
         if resp.is_valid():
             resp.save()
         else:
@@ -67,6 +60,65 @@ def api(request, collection):
 
     return Response(resp.data)
 
+
+#====================================================================#
+#                           /api/api_databatch                       #
+#====================================================================#
+
+@api_view(['GET'])
+@authentication_classes([SessionAuthentication, BasicAuthentication])
+@permission_classes([IsAuthenticated])
+def api_databatch(request):
+    params = request.query_params
+    window_size = int(params['window_size'])
+
+    #get rawdatas
+    filters,_ = parse_params(request, RawData)
+    raw_datas = RawData.objects.filter(**filters)
+
+    #partition rawdatas
+    raw_batches = []
+    n_batches = int( len(raw_datas)/window_size )
+    for i in range(n_batches):
+        start = i*window_size
+        end   = start+window_size
+        raw_batches.append(raw_datas[start:end])
+
+    #process requested features
+    with Pool() as p:
+        processed_batches = p.map(process_databatch, raw_batches)
+    #return response
+    return Response(processed_batches)
+
+def process_databatch(raw_batch):
+    resp = {}
+    times = [raw_data.timestamp for raw_data in raw_batch]
+    measures = {}
+    for raw_data in raw_batch:
+        for measure in raw_data.measures:
+            try:
+                measures[measure['name']].append(measure['value'])
+            except KeyError:
+                measures[measure['name']] = [measure['value']]
+
+    resp['starting_timestamp'] = min(times)
+    resp['ending_timestamp']   = max(times)
+    resp['window_size']        = len(raw_batch)
+    #TODO normalization
+    
+    #time features
+    time_features = {}
+    time_features['batch_mean'] = {key:fmean(value) for key,value in measures.items()}
+    time_features['batch_std']  = {key:stdev(value) for key,value in measures.items()}
+    resp['time_features'] = time_features
+    #TODO other batch analysis
+    #TODO rolling mean
+    #TODO freq and time_freq analysis
+    return resp
+
+#====================================================================#
+#                             USEFUL FUNCS                           #
+#====================================================================#    
 
 def parse_params(request, Model):
     params = {}
