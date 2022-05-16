@@ -5,8 +5,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
-from .models import Module, RawData
-from .serializers import ModuleSerializer, RawDataSerializer
+from .models import UserProfile, Module, RawData
+from .serializers import UserProfileSerializer, ModuleSerializer, RawDataSerializer
 from bson import ObjectId
 import re
 
@@ -16,13 +16,15 @@ import re
 #====================================================================#
 
 MODELS = {
-        'module'    : Module,
-        'rawdata'   : RawData,
+        'userprofile'   : UserProfile,
+        'module'        : Module,
+        'rawdata'       : RawData,
         }
 
 SERIALIZERS = {
-        'module'    : ModuleSerializer,
-        'rawdata'   : RawDataSerializer,
+        'userprofile'   : UserProfileSerializer,
+        'module'        : ModuleSerializer,
+        'rawdata'       : RawDataSerializer,
         }
 
 @api_view(['GET', 'POST', 'DELETE'])
@@ -44,7 +46,6 @@ def api(request, collection):
             resp.save()
         else:
             erro = resp.errors
-            raise ImportError
             return Response(resp.errors,status=400)
 
     elif request.method == 'DELETE':
@@ -58,7 +59,7 @@ def api(request, collection):
             query = Model.objects.filter(**filters)
             resp = Serializer(query, many=True)
         else:
-            return Response(resp.errors, status=400)
+            return Response(status=400)
 
     return Response(resp.data)
 
@@ -124,7 +125,7 @@ def process_databatch(raw_batch):
 
 #====================================================================#
 #                             USEFUL FUNCS                           #
-#====================================================================#    
+#====================================================================#
 
 def parse_params(request, Model):
     params = {}

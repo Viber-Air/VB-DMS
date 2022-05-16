@@ -6,6 +6,16 @@ from djongo import models
 
 # Create your models here.
 
+def image_path(instance, filename):
+    # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
+    return f'{instance.user.id}/{filename}'
+
+class UserProfile(models.Model):
+    _id = models.ObjectIdField(unique=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, to_field='username')
+    image = models.ImageField(upload_to=image_path)
+
+
 class Module(models.Model):
     _id         = models.ObjectIdField(unique=True, blank=True)
     module_num  = models.CharField(max_length=100, unique=True)
