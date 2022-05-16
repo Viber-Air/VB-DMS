@@ -80,7 +80,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
-        'NAME': 'DataServices',
+        'NAME': 'DMS_DB',
         'CLIENT':{
             'host': 'mongo',
             'port': 27017,

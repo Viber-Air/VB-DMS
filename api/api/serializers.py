@@ -7,7 +7,6 @@ class ModuleSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class RawDataSerializer(serializers.ModelSerializer):
-    module = serializers.PrimaryKeyRelatedField(queryset=Module.objects.all())
     measures = serializers.JSONField()
     class Meta:
         model = RawData

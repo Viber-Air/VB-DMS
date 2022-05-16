@@ -7,7 +7,8 @@ from djongo import models
 # Create your models here.
 
 class Module(models.Model):
-    module_num  = models.CharField(max_length=100, primary_key=True)
+    _id         = models.ObjectIdField(unique=True, blank=True)
+    module_num  = models.CharField(max_length=100, unique=True)
     module_type = models.CharField(max_length=100)
     asset       = models.CharField(max_length=100)
     sensor_type = models.CharField(max_length=100)
@@ -21,7 +22,8 @@ class Measure(models.Model):
 
 
 class RawData(models.Model):
-    module      = models.ForeignKey(to=Module, on_delete=models.CASCADE)
+    _id         = models.ObjectIdField(unique=True, blank=True)
+    module      = models.ForeignKey(to=Module, on_delete=models.CASCADE, to_field='module_num')
     #   Data
     measures    = models.ArrayField(model_container=Measure)
     temperature = models.FloatField()

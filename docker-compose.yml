@@ -3,7 +3,7 @@ version: "3"
 services:
         data-services:
                 build: .
-                container_name: data-services
+                container_name: dms
                 ports:
                         - "8000:8000"
                 depends_on:
@@ -13,7 +13,7 @@ services:
                 image: mongo:latest
                 container_name: mongo
                 volumes:
-                        - /var/WP/WP-DataServices_DB:/data/db
-                        - /var/WP/WP-DataServices_config:/data/configdb
+                        - /var/WP/WP-DMS_DB:/data/db
+                        - /var/WP/WP-DMS_config:/data/configdb
                 ports:
                         - "27017:27017"

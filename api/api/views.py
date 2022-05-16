@@ -43,7 +43,9 @@ def api(request, collection):
         if resp.is_valid():
             resp.save()
         else:
-            return Response(status=400)
+            erro = resp.errors
+            raise ImportError
+            return Response(resp.errors,status=400)
 
     elif request.method == 'DELETE':
         # CUIDADO: TODOS OS MATCHES SERÃO APAGADOS!
@@ -56,7 +58,7 @@ def api(request, collection):
             query = Model.objects.filter(**filters)
             resp = Serializer(query, many=True)
         else:
-            return Response(status=400)
+            return Response(resp.errors, status=400)
 
     return Response(resp.data)
 
@@ -134,6 +136,8 @@ def parse_params(request, Model):
         if re.match( r'^\((.+,)+.+\)$', value):
             value_list = value[1:-1].split(',')
             params[key] = value_list
+        elif key.startswith('_id'):
+            params[key] = ObjectId(value)
         else:
             params[key] = value
 
@@ -155,6 +159,14 @@ def parse_params(request, Model):
     return filters,order_by
 
 def parse_data(request):
+    resp = []
     if type(request.data) is dict:
-        return [request.data]
-    return request.data
+        resp = [request.data]
+    else:
+        resp = request.data
+
+    for data in resp:
+        for key,value in data.items():
+            if key.startswith('_id'):
+                data[key] = ObjectId(value)
+    return resp
