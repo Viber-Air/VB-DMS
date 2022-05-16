@@ -33,11 +33,13 @@ SERIALIZERS = {
 def api(request, collection):
     Model = MODELS[collection.lower()]
     Serializer = SERIALIZERS[collection.lower()]
-    filters,order_by = parse_params(request, Model)
+    filters,order_by,limit = parse_params(request, Model)
     data = parse_data(request)
 
     if request.method == 'GET':
         query = Model.objects.filter(**filters).order_by(*order_by)
+        if limit is not None:
+            query = query[0:limit]
         resp = Serializer(query, many=True)
 
     elif request.method == 'POST':
@@ -131,6 +133,7 @@ def parse_params(request, Model):
     params = {}
     filters = {}
     order_by = []
+    limit = None 
 
     #Tratando os valores recebidos
     for key, value in request.query_params.items():  
@@ -153,11 +156,10 @@ def parse_params(request, Model):
                 order_by = params[key]
             else:
                 order_by = [params[key]]
-        # <<<<  COLOCAR AQUI A OPÇÂO PARA OS 
-        #       PRIMEIROS n ELEMENTOS
-        #       OU ULTIMOS n ELEMENTOS
+        elif key == 'limit':
+            limit = int(params[key])
 
-    return filters,order_by
+    return filters,order_by,limit
 
 def parse_data(request):
     resp = []
