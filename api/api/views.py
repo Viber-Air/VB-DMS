@@ -6,7 +6,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 from .models import UserProfile, Module, RawData
-from .serializers import UserProfileSerializer, ModuleSerializer, RawDataSerializer
+from .serializers import UserProfileSerializer, ModuleSerializer, RawDataSerializer, FastRawDataSerializer
 from bson import ObjectId
 import re
 
@@ -27,12 +27,20 @@ SERIALIZERS = {
         'rawdata'       : RawDataSerializer,
         }
 
+FAST_SERIALIZERS = {
+        'userprofile'   : None,
+        'module'        : None,
+        'rawdata'       : FastRawDataSerializer,
+        }
+
 @api_view(['GET', 'POST', 'DELETE'])
 @authentication_classes([SessionAuthentication, BasicAuthentication])
 @permission_classes([IsAuthenticated])
 def api(request, collection):
     Model = MODELS[collection.lower()]
     Serializer = SERIALIZERS[collection.lower()]
+    Fast_Serializer = FAST_SERIALIZERS[collection.lower()]
+
     filters,order_by,limit = parse_params(request, Model)
     data = parse_data(request)
 
@@ -40,6 +48,8 @@ def api(request, collection):
         query = Model.objects.filter(**filters).order_by(*order_by)
         if limit is not None:
             query = query[0:limit]
+        if Fast_Serializer is not None:
+            return Response(Fast_Serializer(query))
         resp = Serializer(query, many=True)
 
     elif request.method == 'POST':
@@ -78,7 +88,7 @@ def api_databatch(request):
     window_size = int(params['window_size'])
 
     #get rawdatas
-    filters,_ = parse_params(request, RawData)
+    filters,*_ = parse_params(request, RawData)
     raw_datas = RawData.objects.filter(**filters)
 
     #split rawdatas

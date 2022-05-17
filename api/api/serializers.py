@@ -18,3 +18,14 @@ class RawDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = RawData
         fields = '__all__'
+
+def FastRawDataSerializer(queryset):
+    return [{
+        '_id'        : str(rawdata.pk),
+        'module'     : rawdata.module_id,
+        'measures'   : rawdata.measures,
+        'temperature': rawdata.temperature,
+        'voltage'    : rawdata.voltage,
+        'description': rawdata.description,
+        'timestamp'  : rawdata.timestamp
+    } for rawdata in queryset]
